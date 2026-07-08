@@ -308,7 +308,27 @@ function ResearchTab() {
   const [content, setContent] = useState("");
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [parsing, setParsing] = useState(false);
+  const [fileName, setFileName] = useState("");
   const [error, setError] = useState("");
+
+  async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file) return;
+    setParsing(true);
+    setError("");
+    try {
+      const text = await extractTextFromFile(file);
+      if (!text) throw new Error("No readable text found in this file.");
+      setContent((prev) => (prev ? prev + "\n\n" + text : text));
+      setFileName(file.name);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not read this file.");
+    } finally {
+      setParsing(false);
+    }
+  }
 
   async function handleSummarize() {
     if (!content.trim()) return;
@@ -332,21 +352,59 @@ function ResearchTab() {
           <BookOpen className="h-5 w-5" /> AI Research Assistant
         </CardTitle>
         <CardDescription>
-          Paste an article, report, or topic description and get a plain-language summary, key insights, and a recommendation.
+          Paste text or upload a document (PDF, DOCX, TXT, MD) and get a plain-language summary, key insights, and a recommendation.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="content">Content or topic</Label>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Label htmlFor="content">Content or topic</Label>
+            <div className="flex items-center gap-2">
+              {fileName && (
+                <span className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
+                  <FileText className="h-3 w-3" />
+                  {fileName}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFileName("");
+                      setContent("");
+                    }}
+                    className="ml-1 hover:text-foreground"
+                    aria-label="Clear file"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
+                </span>
+              )}
+              <Button asChild variant="outline" size="sm" disabled={parsing}>
+                <label className="cursor-pointer">
+                  {parsing ? (
+                    <Loader2 className="mr-1 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Upload className="mr-1 h-4 w-4" />
+                  )}
+                  {parsing ? "Reading..." : "Upload document"}
+                  <input
+                    type="file"
+                    accept=".pdf,.docx,.txt,.md,.csv,.json,text/*"
+                    className="hidden"
+                    onChange={handleFile}
+                    disabled={parsing}
+                  />
+                </label>
+              </Button>
+            </div>
+          </div>
           <Textarea
             id="content"
-            placeholder="Paste an article, report, or describe a topic you want to understand..."
+            placeholder="Paste an article, report, or describe a topic — or upload a document above..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
             rows={10}
           />
         </div>
-        <Button onClick={handleSummarize} disabled={loading || !content.trim()}>
+        <Button onClick={handleSummarize} disabled={loading || parsing || !content.trim()}>
           {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Summarize
         </Button>
