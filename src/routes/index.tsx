@@ -14,8 +14,35 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Copy, Check, Mail, FileText, ListChecks, BookOpen } from "lucide-react";
+import { Loader2, Copy, Check, Mail, FileText, ListChecks, BookOpen, Upload, X } from "lucide-react";
 import { runAssistant } from "@/lib/assistant.functions";
+
+async function extractTextFromFile(file: File): Promise<string> {
+  const name = file.name.toLowerCase();
+  if (name.endsWith(".pdf")) {
+    const pdfjs: any = await import("pdfjs-dist");
+    // @ts-expect-error - worker url import
+    const workerUrl = (await import("pdfjs-dist/build/pdf.worker.mjs?url")).default;
+    pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjs.getDocument({ data: buf }).promise;
+    let out = "";
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      out += content.items.map((it: any) => it.str).join(" ") + "\n\n";
+    }
+    return out.trim();
+  }
+  if (name.endsWith(".docx")) {
+    const mammoth: any = await import("mammoth/mammoth.browser");
+    const buf = await file.arrayBuffer();
+    const res = await mammoth.extractRawText({ arrayBuffer: buf });
+    return (res.value as string).trim();
+  }
+  // txt / md / csv / json / any text
+  return (await file.text()).trim();
+}
 
 export const Route = createFileRoute("/")({
   head: () => ({
