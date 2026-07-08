@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Copy, Check, Mail, FileText, ListChecks } from "lucide-react";
+import { Loader2, Copy, Check, Mail, FileText, ListChecks, BookOpen } from "lucide-react";
 import { runAssistant } from "@/lib/assistant.functions";
 
 export const Route = createFileRoute("/")({
@@ -24,13 +24,13 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "AI-powered workplace assistant: draft emails, summarize meeting notes, and plan your tasks.",
+          "AI-powered workplace assistant: draft emails, summarize meeting notes, plan tasks, and research topics.",
       },
       { property: "og:title", content: "Workplace Productivity Assistant" },
       {
         property: "og:description",
         content:
-          "Draft emails, summarize meetings, and plan your day with an AI workplace assistant.",
+          "Draft emails, summarize meetings, plan your day, and research topics with an AI workplace assistant.",
       },
     ],
   }),
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/")({
 function Disclaimer() {
   return (
     <p className="mt-6 text-center text-xs text-muted-foreground">
-      AI-generated content — please review before using.
+      AI-generated content — please review before use.
     </p>
   );
 }
@@ -277,6 +277,61 @@ function PlannerTab() {
   );
 }
 
+function ResearchTab() {
+  const run = useServerFn(runAssistant);
+  const [content, setContent] = useState("");
+  const [output, setOutput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleSummarize() {
+    if (!content.trim()) return;
+    setLoading(true);
+    setError("");
+    setOutput("");
+    try {
+      const res = await run({ data: { kind: "research", payload: { content } } });
+      setOutput(res.text);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BookOpen className="h-5 w-5" /> AI Research Assistant
+        </CardTitle>
+        <CardDescription>
+          Paste an article, report, or topic description and get a plain-language summary, key insights, and a recommendation.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-2">
+          <Label htmlFor="content">Content or topic</Label>
+          <Textarea
+            id="content"
+            placeholder="Paste an article, report, or describe a topic you want to understand..."
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            rows={10}
+          />
+        </div>
+        <Button onClick={handleSummarize} disabled={loading || !content.trim()}>
+          {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          Summarize
+        </Button>
+        {error && <p className="text-sm text-destructive">{error}</p>}
+        <OutputBlock text={output} />
+        <Disclaimer />
+      </CardContent>
+    </Card>
+  );
+}
+
 function Home() {
   return (
     <div className="min-h-screen bg-background">
@@ -286,16 +341,17 @@ function Home() {
             Workplace Productivity Assistant
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Draft emails, summarize meetings, and plan your day — all in one place.
+            Draft emails, summarize meetings, plan your day, and research topics — all in one place.
           </p>
         </div>
       </header>
       <main className="mx-auto max-w-4xl px-6 py-8">
         <Tabs defaultValue="email">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="email">Email</TabsTrigger>
             <TabsTrigger value="summary">Meeting Notes</TabsTrigger>
             <TabsTrigger value="planner">Task Planner</TabsTrigger>
+            <TabsTrigger value="research">Research</TabsTrigger>
           </TabsList>
           <TabsContent value="email" className="mt-6">
             <EmailTab />
@@ -305,6 +361,9 @@ function Home() {
           </TabsContent>
           <TabsContent value="planner" className="mt-6">
             <PlannerTab />
+          </TabsContent>
+          <TabsContent value="research" className="mt-6">
+            <ResearchTab />
           </TabsContent>
         </Tabs>
       </main>
