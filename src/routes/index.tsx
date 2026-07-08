@@ -21,8 +21,7 @@ async function extractTextFromFile(file: File): Promise<string> {
   const name = file.name.toLowerCase();
   if (name.endsWith(".pdf")) {
     const pdfjs: any = await import("pdfjs-dist");
-    // @ts-expect-error - worker url import
-    const workerUrl = (await import("pdfjs-dist/build/pdf.worker.mjs?url")).default;
+    const workerUrl = (await import("pdfjs-dist/build/pdf.worker.mjs?url" as any)).default;
     pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
     const buf = await file.arrayBuffer();
     const pdf = await pdfjs.getDocument({ data: buf }).promise;
