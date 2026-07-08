@@ -81,16 +81,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       {
         name: "description",
         content:
-          "AI-powered workplace assistant to draft emails, summarize meetings, and plan tasks.",
+          "AI-powered workplace assistant: draft emails, summarize meeting notes, plan tasks, and research topics.",
       },
       { property: "og:title", content: "Workplace Productivity Assistant" },
       {
         property: "og:description",
         content:
-          "AI-powered workplace assistant to draft emails, summarize meetings, and plan tasks.",
+          "AI-powered workplace assistant: draft emails, summarize meeting notes, plan tasks, and research topics.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Workplace Productivity Assistant" },
+      { name: "twitter:description", content: "AI-powered workplace assistant: draft emails, summarize meeting notes, plan tasks, and research topics." },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/0drCABnHnvbvRru8OhdSjwyz1TH2/social-images/social-1783549495713-prodexa_ai_social_image.webp" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/0drCABnHnvbvRru8OhdSjwyz1TH2/social-images/social-1783549495713-prodexa_ai_social_image.webp" },
     ],
     links: [
       {
