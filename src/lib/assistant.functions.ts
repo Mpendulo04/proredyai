@@ -2,9 +2,27 @@ import { createServerFn } from "@tanstack/react-start";
 import { generateText } from "ai";
 import { z } from "zod";
 
+const TaskSchema = z.object({
+  name: z.string(),
+  deadline: z.string().optional().default(""),
+  priority: z.enum(["High", "Medium", "Low"]).default("Medium"),
+});
+
 const Input = z.object({
   kind: z.enum(["email", "summary", "plan", "research"]),
-  payload: z.record(z.string(), z.string()),
+  payload: z.object({
+    // email
+    topic: z.string().optional(),
+    recipient: z.string().optional(),
+    tone: z.string().optional(),
+    // summary
+    notes: z.string().optional(),
+    // plan
+    tasks: z.array(TaskSchema).optional(),
+    timeframe: z.string().optional(),
+    // research
+    content: z.string().optional(),
+  }),
 });
 
 export const runAssistant = createServerFn({ method: "POST" })
@@ -17,23 +35,31 @@ export const runAssistant = createServerFn({ method: "POST" })
 
     let system = "";
     let prompt = "";
+    const p = data.payload;
 
     if (data.kind === "email") {
       system =
-        "You are a professional writing assistant. Write complete, ready-to-send emails including subject line, greeting, body, and sign-off. Respond ONLY with the email itself, no preamble.";
-      prompt = `Write an email.\nTopic: ${data.payload.topic}\nRecipient: ${data.payload.recipient}\nTone: ${data.payload.tone}`;
+        "You are a professional workplace writing assistant. Write a complete, ready-to-send email. Include a clear Subject line (prefix with 'Subject: '), a greeting, a professional body, and a closing/sign-off. Use a concise, workplace-appropriate style. Respond ONLY with the email itself, no preamble or explanation.";
+      prompt = `Write an email.\nTopic: ${p.topic}\nAudience: ${p.recipient}\nTone: ${p.tone}`;
     } else if (data.kind === "summary") {
       system =
-        "You summarize meeting notes. Respond in Markdown with exactly three sections using these headings: '## Summary' (a short paragraph), '## Key Decisions' (bulleted), and '## Action Items' (bulleted, each item includes the responsible person in **bold** if identifiable).";
-      prompt = `Summarize these meeting notes:\n\n${data.payload.notes}`;
+        "You summarize meeting notes for busy professionals. Respond in Markdown with exactly three sections: '## Summary' (a short paragraph), '## Key Decisions' (bulleted), and '## Action Items' (bulleted, each item includes the responsible person in **bold** if identifiable). Use simple, direct language.";
+      prompt = `Summarize these meeting notes:\n\n${p.notes}`;
     } else if (data.kind === "research") {
       system =
-        "You are a research assistant. Summarize the provided content in plain language, list the key insights, and give a simple, practical recommendation. Avoid jargon. Respond in Markdown with exactly these headings: '## Summary' (a short paragraph), '## Key Insights' (bulleted), and '## Recommendation' (one short paragraph).";
-      prompt = `Content to analyze:\n\n${data.payload.content}`;
+        "You are a research assistant. Read the provided content and explain it in plain, simple language — no jargon. Respond in Markdown with exactly these four sections in this order: '## Short Summary' (a short paragraph), '## Key Insights' (bulleted), '## Key Topics' (bulleted, short labels), and '## Practical Recommendation' (one short paragraph with concrete advice).";
+      prompt = `Content to analyze:\n\n${p.content}`;
     } else {
       system =
-        "You are a productivity coach. Given a list of tasks, prioritize them (most urgent first) and produce a schedule. Respond in Markdown with '## Prioritized Tasks' (numbered list, each with a short rationale) and '## Scheduling Tips' (bulleted).";
-      prompt = `Tasks:\n${data.payload.tasks}\n\nTimeframe: ${data.payload.timeframe || "today"}`;
+        "You are a workplace productivity coach. Given a list of tasks with deadlines and priorities, produce a prioritized plan and a suggested schedule. Respond in Markdown with exactly these three sections in this order: '## Prioritised Tasks' (numbered list, most urgent first, each with a short rationale referencing deadline/priority), '## Suggested Daily Schedule' (bulleted time blocks), and '## Productivity Tip' (one short, practical tip). Use simple, professional language.";
+      const taskLines =
+        (p.tasks ?? [])
+          .map(
+            (t, i) =>
+              `${i + 1}. ${t.name} — priority: ${t.priority}${t.deadline ? `, deadline: ${t.deadline}` : ""}`,
+          )
+          .join("\n") || "(none)";
+      prompt = `Tasks:\n${taskLines}\n\nTimeframe: ${p.timeframe || "today"}`;
     }
 
     const { text } = await generateText({
