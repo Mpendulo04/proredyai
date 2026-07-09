@@ -8,8 +8,8 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "Dashboard — AI Workplace Productivity Assistant" },
       { name: "description", content: "Welcome to the AI Workplace Productivity Assistant. Pick a tool to get started." },
-      { property: "og:title", content: "AI Workplace Productivity Assistant" },
-      { property: "og:description", content: "Generate emails, plan tasks, and summarize research with AI." },
+      { property: "og:title", content: "Dashboard — AI Workplace Productivity Assistant" },
+      { property: "og:description", content: "Welcome to the AI Workplace Productivity Assistant. Pick a tool to get started." },
     ],
   }),
   component: Dashboard,
