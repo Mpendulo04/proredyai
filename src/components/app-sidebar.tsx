@@ -1,5 +1,5 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { Home, Mail, CalendarDays, Search, Info, ShieldAlert, Sparkles } from "lucide-react";
+import { Home, Mail, CalendarDays, Search, Info, ShieldAlert, ShieldCheck } from "lucide-react";
 import {
   Sidebar,
   SidebarContent,
@@ -28,8 +28,11 @@ export function AppSidebar() {
     <Sidebar collapsible="icon">
       <SidebarHeader className="border-b">
         <div className="flex items-center gap-2 px-2 py-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm">
-            <Sparkles className="h-4 w-4" />
+          <div
+            className="flex h-8 w-8 items-center justify-center rounded-lg text-white shadow-sm"
+            style={{ background: "linear-gradient(135deg, #9333ea, #3b82f6)" }}
+          >
+            <ShieldCheck className="h-4 w-4" />
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
             <span className="text-sm font-semibold text-sidebar-foreground">AI Workplace</span>
