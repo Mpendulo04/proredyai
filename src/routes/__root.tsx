@@ -61,20 +61,20 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Dashboard — AI Workplace Productivity Assistant" },
-      { name: "description", content: "Welcome to the AI Workplace Productivity Assistant. Pick a tool to get started." },
-      { property: "og:title", content: "Dashboard — AI Workplace Productivity Assistant" },
-      { property: "og:description", content: "Welcome to the AI Workplace Productivity Assistant. Pick a tool to get started." },
+      { title: "Dashboard — ProRedy AI" },
+      { name: "description", content: "Welcome to ProRedy AI. Pick a tool to get started." },
+      { property: "og:title", content: "Dashboard — ProRedy AI" },
+      { property: "og:description", content: "Welcome to ProRedy AI. Pick a tool to get started." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:title", content: "Dashboard — AI Workplace Productivity Assistant" },
-      { name: "twitter:description", content: "Welcome to the AI Workplace Productivity Assistant. Pick a tool to get started." },
+      { name: "twitter:title", content: "Dashboard — ProRedy AI" },
+      { name: "twitter:description", content: "Welcome to ProRedy AI. Pick a tool to get started." },
       { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cebb68c2-84fc-420e-b094-cde5e760ae9d/id-preview-48887a0f--efb69c1b-18f0-49a3-b6cf-0fb734a682aa.lovable.app-1783604305130.png" },
       { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/cebb68c2-84fc-420e-b094-cde5e760ae9d/id-preview-48887a0f--efb69c1b-18f0-49a3-b6cf-0fb734a682aa.lovable.app-1783604305130.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg", type: "image/svg+xml" },
     ],
   }),
   shellComponent: RootShell,
@@ -102,7 +102,7 @@ function RootComponent() {
           <div className="flex flex-1 flex-col">
             <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-card/80 px-4 backdrop-blur">
               <SidebarTrigger />
-              <span className="text-sm font-medium text-foreground">AI Workplace Productivity Assistant</span>
+              <span className="text-sm font-medium text-foreground">ProRedy AI</span>
             </header>
             <main className="flex-1">
               <Outlet />

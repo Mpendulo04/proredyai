@@ -1,4 +1,4 @@
-# AI Workplace Productivity Assistant — Redesign Plan
+# ProRedy AI — Redesign Plan
 
 Transform the current single-page tabbed app into a modern SaaS-style dashboard with sidebar navigation, a light blue theme, and new pages. No auth, no storage — everything stays in-session.
 
@@ -22,7 +22,7 @@ Replace the current header layout with a shadcn `Sidebar` shell in `src/routes/_
   - 🔍 AI Research Assistant → `/research`
   - ℹ️ About → `/about`
   - ⚠️ Responsible AI → `/responsible-ai`
-- Sidebar footer: "AI Workplace Productivity Assistant — Version 1.0"
+- Sidebar footer: "ProRedy AI — Version 1.0"
 - Collapsible with `SidebarTrigger` in a top bar (mobile-friendly)
 - Active route highlighted via `useRouterState`
 

@@ -5,10 +5,10 @@ import { Info } from "lucide-react";
 export const Route = createFileRoute("/about")({
   head: () => ({
     meta: [
-      { title: "About — AI Workplace Productivity Assistant" },
-      { name: "description", content: "Learn about the AI Workplace Productivity Assistant." },
-      { property: "og:title", content: "About — AI Workplace Productivity Assistant" },
-      { property: "og:description", content: "Learn about the AI Workplace Productivity Assistant." },
+      { title: "About — ProRedy AI" },
+      { name: "description", content: "Learn about ProRedy AI." },
+      { property: "og:title", content: "About — ProRedy AI" },
+      { property: "og:description", content: "Learn about ProRedy AI." },
     ],
   }),
   component: AboutPage,
@@ -25,7 +25,7 @@ function AboutPage() {
         </CardHeader>
         <CardContent className="space-y-4 text-sm leading-relaxed text-foreground">
           <p>
-            <strong>AI Workplace Productivity Assistant</strong> is an AI-powered web application
+            <strong>ProRedy AI</strong> is an AI-powered web application
             designed to improve workplace productivity by helping professionals automate everyday
             tasks such as writing emails, organising work schedules, and summarising research.
           </p>
