@@ -5,6 +5,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { ViewportProvider, ViewportToggle, useViewport } from "@/components/viewport-context";
 
 function NotFoundComponent() {
   return (
