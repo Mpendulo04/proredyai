@@ -8,6 +8,12 @@ const TaskSchema = z.object({
   priority: z.enum(["High", "Medium", "Low"]).default("Medium"),
 });
 
+const FileSchema = z.object({
+  data: z.string(), // base64
+  mimeType: z.string(),
+  name: z.string().optional(),
+});
+
 const Input = z.object({
   kind: z.enum(["email", "summary", "plan", "research"]),
   payload: z.object({
@@ -22,6 +28,7 @@ const Input = z.object({
     timeframe: z.string().optional(),
     // research
     content: z.string().optional(),
+    file: FileSchema.optional(),
   }),
 });
 
@@ -47,7 +54,34 @@ export const runAssistant = createServerFn({ method: "POST" })
       prompt = `Summarize these meeting notes:\n\n${p.notes}`;
     } else if (data.kind === "research") {
       system =
-        "You are a research assistant. Read the provided content and explain it in plain, simple language — no jargon. Respond in Markdown with exactly these four sections in this order: '## Short Summary' (a short paragraph), '## Key Insights' (bulleted), '## Key Topics' (bulleted, short labels), and '## Practical Recommendation' (one short paragraph with concrete advice).";
+        "You are a research assistant analyzing a document or text. Carefully read ALL content including body text, tables, figures, charts, diagrams, and images. When tables are present, extract the key numbers and relationships. When charts or figures are present, describe what they show and the trends or comparisons they reveal. Respond in Markdown with exactly these four sections in this order: '## Short Summary' (a short paragraph), '## Key Insights' (bulleted, include insights from tables/charts/figures where relevant), '## Key Topics' (bulleted, short labels), and '## Practical Recommendation' (one short paragraph with concrete advice). Use plain, simple language — no jargon.";
+
+      if (p.file) {
+        const { text } = await generateText({
+          model: gateway("google/gemini-3-flash-preview"),
+          system,
+          messages: [
+            {
+              role: "user",
+              content: [
+                {
+                  type: "text",
+                  text:
+                    "Analyze the attached document thoroughly, including any tables, figures, images, and charts." +
+                    (p.content ? `\n\nAdditional context / pasted text:\n${p.content}` : ""),
+                },
+                {
+                  type: "file",
+                  data: p.file.data,
+                  mediaType: p.file.mimeType,
+                },
+              ],
+            },
+          ],
+        });
+        return { text };
+      }
+
       prompt = `Content to analyze:\n\n${p.content}`;
     } else {
       system =
