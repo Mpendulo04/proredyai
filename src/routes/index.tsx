@@ -41,7 +41,7 @@ function Dashboard() {
     <div className="mx-auto max-w-5xl px-6 py-10">
       <section className="rounded-2xl border bg-gradient-to-br from-primary/10 via-card to-card p-8 shadow-sm">
         <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
-          Welcome to ProReady AI
+          Welcome to ProRedy AI
         </h1>
         <p className="mt-3 max-w-2xl text-base text-muted-foreground">
           Improve workplace productivity using AI-powered tools that help generate professional
