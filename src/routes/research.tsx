@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,29 +9,30 @@ import { Loader2, Search, Upload, FileText, X } from "lucide-react";
 import { runAssistant } from "@/lib/assistant.functions";
 import { OutputBlock } from "@/components/output-block";
 
-async function extractTextFromFile(file: File): Promise<string> {
-  const name = file.name.toLowerCase();
-  if (name.endsWith(".pdf")) {
-    const pdfjs: any = await import("pdfjs-dist");
-    const workerUrl = (await import("pdfjs-dist/build/pdf.worker.mjs?url" as any)).default;
-    pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-    const buf = await file.arrayBuffer();
-    const pdf = await pdfjs.getDocument({ data: buf }).promise;
-    let out = "";
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      out += content.items.map((it: any) => it.str).join(" ") + "\n\n";
-    }
-    return out.trim();
+type UploadedFile = { data: string; mimeType: string; name: string };
+
+function countWords(s: string): number {
+  const t = s.trim();
+  if (!t) return 0;
+  return t.split(/\s+/).length;
+}
+
+async function fileToBase64(file: File): Promise<string> {
+  const buf = await file.arrayBuffer();
+  const bytes = new Uint8Array(buf);
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode.apply(null, Array.from(bytes.subarray(i, i + chunk)));
   }
-  if (name.endsWith(".docx")) {
-    const mammoth: any = await import("mammoth/mammoth.browser" as any);
-    const buf = await file.arrayBuffer();
-    const res = await mammoth.extractRawText({ arrayBuffer: buf });
-    return (res.value as string).trim();
-  }
-  return (await file.text()).trim();
+  return btoa(binary);
+}
+
+async function extractTextFromDocx(file: File): Promise<string> {
+  const mammoth: any = await import("mammoth/mammoth.browser" as any);
+  const buf = await file.arrayBuffer();
+  const res = await mammoth.extractRawText({ arrayBuffer: buf });
+  return (res.value as string).trim();
 }
 
 export const Route = createFileRoute("/research")({
@@ -49,11 +50,17 @@ export const Route = createFileRoute("/research")({
 function ResearchPage() {
   const run = useServerFn(runAssistant);
   const [content, setContent] = useState("");
+  const [uploaded, setUploaded] = useState<UploadedFile | null>(null);
   const [output, setOutput] = useState("");
   const [loading, setLoading] = useState(false);
   const [parsing, setParsing] = useState(false);
-  const [fileName, setFileName] = useState("");
   const [error, setError] = useState("");
+
+  const inputWords = useMemo(
+    () => countWords(content) + (uploaded ? Math.max(1, 0) : 0),
+    [content, uploaded],
+  );
+  const outputWords = useMemo(() => countWords(output), [output]);
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -62,10 +69,26 @@ function ResearchPage() {
     setParsing(true);
     setError("");
     try {
-      const text = await extractTextFromFile(file);
-      if (!text) throw new Error("No readable text found in this file.");
-      setContent((prev) => (prev ? prev + "\n\n" + text : text));
-      setFileName(file.name);
+      const name = file.name.toLowerCase();
+      // PDF and images: send to AI multimodally for full understanding of tables/figures/charts
+      if (name.endsWith(".pdf") || file.type.startsWith("image/")) {
+        const data = await fileToBase64(file);
+        setUploaded({
+          data,
+          mimeType: file.type || (name.endsWith(".pdf") ? "application/pdf" : "application/octet-stream"),
+          name: file.name,
+        });
+      } else if (name.endsWith(".docx")) {
+        const text = await extractTextFromDocx(file);
+        if (!text) throw new Error("No readable text found in this document.");
+        setContent((prev) => (prev ? prev + "\n\n" + text : text));
+        setUploaded({ data: "", mimeType: "text/plain", name: file.name });
+      } else {
+        const text = (await file.text()).trim();
+        if (!text) throw new Error("File is empty.");
+        setContent((prev) => (prev ? prev + "\n\n" + text : text));
+        setUploaded({ data: "", mimeType: "text/plain", name: file.name });
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Could not read this file.");
     } finally {
@@ -73,12 +96,22 @@ function ResearchPage() {
     }
   }
 
+  function clearFile() {
+    setUploaded(null);
+  }
+
   async function generate() {
-    if (!content.trim()) return;
+    const hasFile = !!(uploaded && uploaded.data);
+    if (!content.trim() && !hasFile) return;
     setLoading(true);
     setError("");
     try {
-      const res = await run({ data: { kind: "research", payload: { content } } });
+      const payload: {
+        content?: string;
+        file?: { data: string; mimeType: string; name: string };
+      } = { content };
+      if (hasFile && uploaded) payload.file = uploaded;
+      const res = await run({ data: { kind: "research", payload } });
       setOutput(res.text);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");
@@ -86,6 +119,8 @@ function ResearchPage() {
       setLoading(false);
     }
   }
+
+  const canGenerate = (!!content.trim() || !!(uploaded && uploaded.data)) && !loading && !parsing;
 
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
@@ -95,8 +130,9 @@ function ResearchPage() {
             <Search className="h-5 w-5 text-primary" /> AI Research Assistant
           </CardTitle>
           <CardDescription>
-            Paste text or upload a document (PDF, DOCX, TXT, MD) to get a plain-language summary,
-            insights, key topics, and a practical recommendation.
+            Paste text or upload a document (PDF, DOCX, TXT, MD, images) to get a plain-language
+            summary, insights, key topics, and a practical recommendation. Tables, figures, and
+            charts in PDFs and images are analyzed directly.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -104,13 +140,13 @@ function ResearchPage() {
             <div className="flex flex-wrap items-center justify-between gap-2">
               <Label htmlFor="content">Content or topic</Label>
               <div className="flex items-center gap-2">
-                {fileName && (
+                {uploaded && (
                   <span className="flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs text-muted-foreground">
                     <FileText className="h-3 w-3" />
-                    {fileName}
+                    {uploaded.name}
                     <button
                       type="button"
-                      onClick={() => { setFileName(""); setContent(""); }}
+                      onClick={clearFile}
                       className="ml-1 hover:text-foreground"
                       aria-label="Clear file"
                     >
@@ -124,7 +160,7 @@ function ResearchPage() {
                     {parsing ? "Reading..." : "Upload document"}
                     <input
                       type="file"
-                      accept=".pdf,.docx,.txt,.md,.csv,.json,text/*"
+                      accept=".pdf,.docx,.txt,.md,.csv,.json,image/*,text/*"
                       className="hidden"
                       onChange={handleFile}
                       disabled={parsing}
@@ -140,12 +176,21 @@ function ResearchPage() {
               onChange={(e) => setContent(e.target.value)}
               rows={10}
             />
+            <div className="flex items-center justify-between text-xs text-muted-foreground">
+              <span>Input word count: {inputWords}</span>
+              {uploaded && uploaded.data && (
+                <span>+ attached {uploaded.mimeType.startsWith("image/") ? "image" : "PDF"} analyzed directly</span>
+              )}
+            </div>
           </div>
-          <Button onClick={generate} disabled={loading || parsing || !content.trim()}>
+          <Button onClick={generate} disabled={!canGenerate}>
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Summarise
           </Button>
           {error && <p className="text-sm text-destructive">{error}</p>}
+          {(output || loading) && (
+            <div className="text-xs text-muted-foreground">Summary word count: {outputWords}</div>
+          )}
           <OutputBlock text={output} onChange={setOutput} onRegenerate={generate} loading={loading} />
         </CardContent>
       </Card>
