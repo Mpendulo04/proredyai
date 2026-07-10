@@ -13,7 +13,7 @@ import { OutputBlock } from "@/components/output-block";
 export const Route = createFileRoute("/planner")({
   head: () => ({
     meta: [
-      { title: "AI Task Planner — AI Workplace Productivity Assistant" },
+      { title: "AI Task Planner — ProRedy AI" },
       { name: "description", content: "Turn tasks, deadlines, and priorities into a prioritized plan and daily schedule." },
       { property: "og:title", content: "AI Task Planner" },
       { property: "og:description", content: "Turn tasks, deadlines, and priorities into a prioritized plan and daily schedule." },

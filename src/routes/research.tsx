@@ -37,7 +37,7 @@ async function extractTextFromFile(file: File): Promise<string> {
 export const Route = createFileRoute("/research")({
   head: () => ({
     meta: [
-      { title: "AI Research Assistant — AI Workplace Productivity Assistant" },
+      { title: "AI Research Assistant — ProRedy AI" },
       { name: "description", content: "Summarize articles, reports, or uploaded documents in plain language." },
       { property: "og:title", content: "AI Research Assistant" },
       { property: "og:description", content: "Summarize articles, reports, or uploaded documents in plain language." },

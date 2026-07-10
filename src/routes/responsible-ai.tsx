@@ -5,7 +5,7 @@ import { ShieldAlert } from "lucide-react";
 export const Route = createFileRoute("/responsible-ai")({
   head: () => ({
     meta: [
-      { title: "Responsible AI — AI Workplace Productivity Assistant" },
+      { title: "Responsible AI — ProRedy AI" },
       { name: "description", content: "Responsible AI guidance and privacy notice." },
       { property: "og:title", content: "Responsible AI" },
       { property: "og:description", content: "Responsible AI guidance and privacy notice." },

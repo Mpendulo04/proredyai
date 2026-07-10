@@ -13,7 +13,7 @@ import { OutputBlock } from "@/components/output-block";
 export const Route = createFileRoute("/email")({
   head: () => ({
     meta: [
-      { title: "Smart Email Generator — AI Workplace Productivity Assistant" },
+      { title: "Smart Email Generator — ProRedy AI" },
       { name: "description", content: "Generate professional emails tailored to your audience and tone." },
       { property: "og:title", content: "Smart Email Generator" },
       { property: "og:description", content: "Generate professional emails tailored to your audience and tone." },
