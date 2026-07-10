@@ -97,20 +97,49 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   return (
     <QueryClientProvider client={queryClient}>
-      <SidebarProvider>
-        <div className="flex min-h-screen w-full bg-background">
-          <AppSidebar />
-          <div className="flex flex-1 flex-col">
-            <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-card/80 px-4 backdrop-blur">
-              <SidebarTrigger />
-              <span className="text-sm font-medium text-foreground">ProRedy AI</span>
-            </header>
-            <main className="flex-1">
+      <ViewportProvider>
+        <SidebarProvider>
+          <div className="flex min-h-screen w-full bg-background">
+            <AppSidebar />
+            <div className="flex flex-1 flex-col">
+              <header className="sticky top-0 z-10 flex h-14 items-center gap-2 border-b bg-card/80 px-4 backdrop-blur">
+                <SidebarTrigger />
+                <span className="text-sm font-medium text-foreground">ProRedy AI</span>
+                <div className="ml-auto">
+                  <ViewportToggle />
+                </div>
+              </header>
+              <MainArea />
+            </div>
+          </div>
+        </SidebarProvider>
+      </ViewportProvider>
+    </QueryClientProvider>
+  );
+}
+
+function MainArea() {
+  const { device } = useViewport();
+  if (device === "mobile") {
+    return (
+      <main className="flex-1 overflow-auto bg-muted/40 p-6">
+        <div className="mx-auto flex justify-center">
+          <div
+            className="relative overflow-hidden rounded-[2.5rem] border-[10px] border-foreground/80 bg-background shadow-2xl"
+            style={{ width: 390, height: 780 }}
+          >
+            <div className="pointer-events-none absolute left-1/2 top-2 z-20 h-5 w-28 -translate-x-1/2 rounded-full bg-foreground/80" />
+            <div className="h-full w-full overflow-auto">
               <Outlet />
-            </main>
+            </div>
           </div>
         </div>
-      </SidebarProvider>
-    </QueryClientProvider>
+      </main>
+    );
+  }
+  return (
+    <main className="flex-1">
+      <Outlet />
+    </main>
   );
 }
