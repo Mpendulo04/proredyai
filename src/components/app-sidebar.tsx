@@ -37,9 +37,8 @@ export function AppSidebar() {
                 </linearGradient>
               </defs>
               <rect width="32" height="32" rx="8" fill="black" />
-              <rect x="2" y="2" width="28" height="28" rx="6" fill="url(#logoGradient)" />
               <path d="M 8 25 L 8 7 L 16 7 C 21 7 23 10 23 12.5 C 23 15 21 17 16 17 L 13 17 L 13 25 Z" fill="white" />
-              <path d="M 18 11 L 20 14 L 16 14 Z" fill="url(#logoGradient)" />
+              <path d="M 18 11 L 20 14 L 16 14 Z" fill="black" />
             </svg>
           </div>
           <div className="flex flex-col leading-tight group-data-[collapsible=icon]:hidden">
